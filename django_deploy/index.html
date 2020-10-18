@@ -1,0 +1,468 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Django デプロイ</title>
+
+  <link rel="stylesheet" href="dist/reset.css">
+  <link rel="stylesheet" href="dist/reveal.css">
+  <link rel="stylesheet" href="dist/theme/simple.css" id="theme">
+
+  <!-- Theme used for syntax highlighted code -->
+  <link rel="stylesheet" href="plugin/highlight/monokai.css" id="highlight-theme">
+
+  <style>
+    h3 {
+      border-bottom: solid 1px;
+    }
+  </style>
+</head>
+
+<body style="background-color:floralwhite;">
+  <div class="reveal">
+    <div class="slides">
+      <!-------------------------------------------------------------------->
+      <section>
+        <h3>Django を自宅のサーバにデプロイ</h3>
+        <p>(Ubuntu + Apache で)</p>
+      </section>
+      <!-------------------------------------------------------------------->
+      <section>
+        <h3>前提となるスキル</h3>
+        <ul>
+          <li>Apache の <b>It works!</b> を出せる。</li>
+          <li>Django で管理画面を出せる。</li>
+          <li>GitHub に <tt>push/pull</tt> できる。</li>
+        </ul>
+      </section>
+      <!-------------------------------------------------------------------->
+      <section>
+        <h3>開発環境</h3>
+        <ul>
+          <li>Python 3.8.1</li>
+          <li>Django 3.1.2</li>
+        </ul>
+        <h3 style="margin-top: 1em;">サーバ環境</h3>
+        <ul>
+          <li>Ubuntu 18.04.5</li>
+          <li>Apache 2.4.29</li>
+          <li>Python 3.8.0 (～3.6.0)</li>
+        </ul>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>やりたかったこと</h3>
+        <ol>
+          <li>自宅のサーバで</li>
+          <li>無料のドメインで</li>
+          <li>無料の SSL で</li>
+          <li>他のコンテンツと共存する形で</li>
+          <li>24時間動かす</li>
+        </ol>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>サーバの準備</h3>
+        <p>インターネットに繋がった<br>
+          Ubuntu マシンがあるものとします。</p>
+        <p>Apache2, Git, Python3 を<br>
+          インストールします。</p>
+        <p>外からブラウザで<br>
+          アクセスできるようにします。<br>
+          (ファイアウォールとかルータの設定)</p>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>ドメインの準備</h3>
+        <p>ドメイン名でアクセスしたいので、<br>
+          持ってなければ無料のサービス<br>
+          (No-IP とか) を使います。</p>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>無料の DDNS の制限</h3>
+        <p>Apache で他のコンテンツも動かす場合、<br>
+          サブドメインで隔離するのが楽です。</p>
+        <p>
+          <tt>
+            <font color="gray">https://<font color="tomato">django.</font>
+              my-domain.no-ip.xx/</font>
+          </tt>
+        </p>
+        <p>しかし、無料の DDNS を使う場合、<br>
+          サブドメインが使えないかも知れません。</p>
+        <p>このスライドではサブドメインを<br>
+          使わないやり方にします (のちほど)。</p>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <section>
+          <h3>無料の SSL の導入</h3>
+          <p><b>Let's Encrypt</b> という<br>
+            フリーの認証局を使います。</p>
+          <p>それには、<b>Certbot</b> を<br>
+            インストールします。</p>
+          <p><b>Certbot</b> のサイトに<br>
+            <a href="https://certbot.eff.org/lets-encrypt/ubuntubionic-apache" target="_blank">すべての手順</a>
+            が書いてあります。</p>
+        </section>
+        <section>
+          <h3>動作確認時の注意</h3>
+          <p>https になっているのに、ブラウザのアドレスバーに「安全ではありません」と出る場合、表示しているページの中に <tt>src="http://～"</tt> となっている画像等がないか、確認する。</p>
+        </section>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>開発環境へ戻って…</h3>
+        <p>Django のプロジェクトをいじります。</p>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>django-environ</h3>
+        <p><b>django-environ</b> を<br>
+          インストールします。<br>
+          (仮想環境の中に)</p>
+        <p>環境ごとに設定を変えるのが<br>
+          楽になります。</p>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <section>
+          <h3>settings.py</h3>
+          <pre><code class="python hljs" data-trim data-line-numbers="2|6-7|9-12">
+          from pathlib import Path
+          import environ
+
+          BASE_DIR = Path(__file__).resolve().parent.parent
+
+          env = environ.Env()
+          env.read_env(str(BASE_DIR / '.env'))
+
+          DEBUG = env.bool('DEBUG', default=False)
+          ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
+          SECRET_KEY = env('SECRET_KEY')
+          STATIC_URL = env('STATIC_URL', default='/static/')
+          </code></pre>
+          <p>既存の同じ変数に代入してる行は削除。<br>
+            特に SECRET_KEY の直書きは避ける。</p>
+        </section>
+        <section>
+          <p>(注意) よくあるサンプル</p>
+          <pre><code class="python hljs" data-trim>
+          &nbsp;
+          env = environ.Env()
+          env.read_env('.env')
+          &nbsp;
+          </code></pre>
+          <p>この書き方だと、サーバ環境で読めないかも。</p>
+        </section>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>Django フォルダ構成</h3>
+        <pre><tt><font color="gray">
+          my_site/  <font color="#CD5C5C">&lt;- BASE_DIR</font>
+          ├─ .git/
+          ├─ .venv/
+          ├─ my_app/
+          ｜   ├─
+          ｜   └─
+          ├─ my_site/
+          ｜   ├─ <font color="green">settings.py</font>
+          ｜   └─ wsgi.py
+          ├─ <font color="green">.env</font>
+          ├─ .gitignore
+          └─ manage.py
+        </font></tt></pre>
+        <p>(project root を repository root に合わせてある。)</p>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <section>
+          <h3>.env (開発環境)</h3>
+          <pre><code class="plaintext hljs" data-trim>
+          &nbsp;
+          DEBUG=True
+          SECRET_KEY=-=g6(xcchb(9$o$9-0qt%8w6e_n%skn=l1dmuazng%c%lrpsa2
+          &nbsp;
+          </code></pre>
+          <p>.gitignore に .env を追加しておく。<br>
+            <font color="tomato">(SECRET_KEY をプッシュしない)</font>
+          </p>
+        </section>
+        <section>
+          <h3>SECRET_KEY の作り方</h3>
+          <p>Django でプロジェクトを作ると<br>
+            settings.py の中に生成されるが、<br>
+            コマンドで作ることが可能。</p>
+          <pre><code class="plaintext hljs" data-trim>
+          &nbsp;
+          (my_site) > python
+          Python 3.8.1
+          >>> from django.core.management.utils import get_random_secret_key
+          >>> get_random_secret_key()
+          '-=g6(xcchb(9$o$9-0qt%8w6e_n%skn=l1dmuazng%c%lrpsa2'
+          &nbsp;
+          </code></pre>
+        </section>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>データベースの設定</h3>
+        <p>データベースの設定も同様に<br>
+          環境ごとに変えることができます。</p>
+        <p>今回はデフォルトの SQLite を<br>
+          使っているので、変えてません。</p>
+        </p>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>プロジェクトをサーバにクローン</h3>
+        <p>一度 runserver して<br>
+          .env が読み込まれているのを確認して、</p>
+        <p>プロジェクトを GitHub へプッシュ。</p>
+        <p>そしてサーバでクローン。</p>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section id="env_server">
+        <h3>.env (サーバ環境)</h3>
+        <pre><code class="plaintext hljs" data-trim>
+          &nbsp;
+          ALLOWED_HOSTS=my-domain.no-ip.xx
+          SECRET_KEY=1#=qkz80=xtlti-#il-sq!=_u56tdjp7on@^%&q#qg-w2z@um%
+          STATIC_URL=/my_site/static/
+          &nbsp;
+        </code></pre>
+        <ul>
+          <li>こっちはこっちで SECRET_KEY を作る。</li>
+          <li>STATIC_URL は、あとで STATIC_ROOT と<br>関連付ける。</li>
+          <li>ALLOWED_HOSTS はカンマ区切り。</li>
+        </ul>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>サーバ上で (軽く) 動作確認</h3>
+        <p>開発環境の時と同じように<br>
+          runserver まで行ってみます。</p>
+        <p>(仮想環境、DB の設定はできている前提。)</p>
+        <pre><code class="plaintext hljs" data-trim>
+        &nbsp;
+        (my_site) $ python3 manage.py migrate
+        ...
+        (my_site) $ python3 manage.py createsuperuser
+        ...
+        (my_site) $ python3 manage.py runserver
+        ...
+        &nbsp;
+        </code></pre>
+        <p>エラーが出なければ .env は読めている。</p>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <section>
+          <h3>Static Files を一か所に集める</h3>
+          <pre><code class="plaintext hljs" data-trim>
+          &nbsp;
+          (my_site) $ python3 manage.py collectstatic
+          &nbsp;
+          </code></pre>
+          <p>STATIC_ROOT 以下にコピーされる。</p>
+          <pre><tt><font color="gray">
+          my_site/  <font color="#CD5C5C">&lt;- BASE_DIR</font>
+          ├─ static/
+          ｜   └─ css/
+          ｜        ├─ base.css
+          ｜        └─ layout.css
+          └─ staticfiles/  <font color="#CD5C5C">&lt;- STATIC_ROOT</font>
+               ├─ admin/
+               ｜   ├─ css/
+               ｜   ├─ fonts/
+               ｜   ├─ img/
+               ｜   └─ js/
+               └─ css/
+                    ├─ base.css
+                    └─ layout.css
+        </font></tt></pre>
+        </section>
+        <section>
+          <p>STATIC_ROOT の定義は settings.py の中に。</p>
+          <pre><code class="python hljs" data-trim data-line-numbers="4|1-5">
+            &nbsp;
+            STATIC_URL = env('STATIC_URL', default='/static/')
+            STATICFILES_DIRS = [BASE_DIR / "static"]
+            STATIC_ROOT = BASE_DIR / "staticfiles"
+            &nbsp;
+          </code></pre>
+          <dl>
+            <dt>STATIC_URL</dt>
+            <dd>Django が URL で static を参照する時のパス</dd>
+            <dt>STATICFILES_DIRS</dt>
+            <dd>プロジェクトで管理する static のフォルダ<br>
+              (アプリケーションごとの static 以外を指定)</dd>
+            <dt>STATIC_ROOT</dt>
+            <dd>STATIC_URL のアクセス先の実体のパス</dd>
+          </dl>
+        </section>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <section>
+          <h3><a href="https://ja.wikipedia.org/wiki/Mod_wsgi" target="_blank">mod-wsgi</a> のインストール</h3>
+          <p>apache2-dev をインストール</p>
+          <pre><code class="plaintext hljs" data-trim>
+          &nbsp;
+          $ sudo apt install apache2-dev
+          &nbsp;
+          </code></pre>
+          <p>mod-wsgi をインストール</p>
+          <pre><code class="plaintext hljs" data-trim>
+            &nbsp;
+            (my_site) $ pip install mod-wsgi
+            (my_site) $ pip install mod-wsgi-httpd
+            &nbsp;
+          </code></pre>
+        </section>
+        <section>
+          <h3>補足</h3>
+          <ul>
+            <li>Apache のモジュールフォルダに (apt で) mod-wsgi をインストールして使うことも出来るようです。</li>
+            <li>仮想環境でなくグローバルにインストールしても使えると思います (お好みで)。</li>
+          </ul>
+        </section>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>mod-wsgi を有効にする</h3>
+        <p>Certbot をインストールした時点で、<br>
+          Apache の conf ファイルはこんな感じ。</p>
+        <pre><tt><font color="gray">
+          /etc/apache2/
+          ├─ sites-avaliable/
+          ｜   ├─ <font color="green">000-default-le-ssl.conf</font>
+          ｜   └─ 000-default.conf
+          └─ sites-enabled/
+               ├─ <font color="darkcyan">000-default-le-ssl.conf</font> -> ... (シンボリックリンク)
+               └─ <font color="darkcyan">000-default.conf</font> -> ...        (シンボリックリンク)
+        </font></tt></pre>
+        <p>
+          <font color="green">000-default-le-ssl.conf</font> を編集する。
+        </p>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section id="conf1">
+        <h3>000-default-le-ssl.conf</h3>
+        <pre><code class="apache hljs" data-trim data-line-numbers="3-5"><script type="text/template">
+          <IfModule mod_ssl.c>
+
+            LoadModule wsgi_module /.../my_site/.venv/lib/python3.8/site-packages/mod_wsgi/server/mod_wsgi-py38.cpython-38-x86_64-linux-gnu.so
+            WSGIPythonHome /.../my_site/.venv
+            WSGIPythonPath /.../my_site
+            
+            <VirtualHost *:443>
+              ...
+        </script></code></pre>
+        <dl>
+          <dt>LoadModule wsgi_module</dt>
+          <dd>インストールした wsgi モジュールのフルパス</dd>
+          <dt>WSGIPythonHome</dt>
+          <dd>Python フォルダ (=仮想環境) のフルパス</dd>
+          <dt>WSGIPythonPath</dt>
+          <dd>import したいものが入ってるディレクトリ<br>
+            複数ある場合はコロンで区切る。</dd>
+        </dl>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>000-default-le-ssl.conf</h3>
+        <pre><code class="apache hljs" data-trim data-line-numbers="2-5|7-12"><script type="text/template">
+          <VirtualHost *:443>
+            Alias /my_site/static /.../my_site/staticfiles
+            <Directory /.../my_site/staticfiles>
+                    Require all granted
+            </Directory>
+    
+            WSGIScriptAlias /my_site /.../my_site/my_site/wsgi.py
+            <Directory /.../my_site/my_site>
+                    <Files wsgi.py>
+                            Require all granted
+                    </Files>
+            </Directory>
+            
+            ... 以下、DocumentRoot などの設定
+        </script></code></pre>
+        <ul>
+          <li>STATIC_URL と STATIC_ROOT の関連付け</li>
+          <li>/my_site で始まる URL と wsgi の関連付け</li>
+        </ul>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>ここでのポイント</h3>
+        <p>
+          Alias がいずれも /my_site で始まるので、<br>
+          <tt>
+            <font color="gray">https://my-domain.no-ip.xx</font>
+            <font color="tomato">/my_site/</font>
+          </tt><br>
+          を起点とするパスが Django 用となる。
+        </p>
+        <p>これにより、</p>
+        <ul>
+          <li>今ある Ubuntu マシンで</li>
+          <li>サブドメインを使わずに</li>
+          <li>他のコンテンツと共存する形で</li>
+        </ul>
+        <p>Django をデプロイできる。</p>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>Apache を再起動する</h3>
+        <pre><code class="plaintext hljs" data-trim>
+          &nbsp;
+          $ systemctl reload apache2
+          &nbsp;
+          </code></pre>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>アクセスしてみる</h3>
+        <img src="img/admin.png" style="border: solid 1px gray; box-shadow: 5px 5px 20px gray;" />
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>TIPs</h3>
+        <ul>
+          <li>ブラウザで表示できない時は、Apache のログを見る (/var/log/apache2/error.log)。</li>
+          <li>No module named 'xxxx' というエラーは、<a href="#/conf1">WSGIPythonPath</a> を疑う。</li>
+          <li>Apache のエラーでなければ、<a href="#/env_server">DEBUG=True</a> にしてブラウザにエラーを出す。</li>
+          <li>SQLite を使っている場合、db.sqlite3 と、その親ディレクトリにも書き込み権限が必要。</li>
+        </ul>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3>おわり</h3>
+      </section>
+    </div>
+  </div>
+
+  <script src="dist/reveal.js"></script>
+  <script src="plugin/notes/notes.js"></script>
+  <script src="plugin/markdown/markdown.js"></script>
+  <script src="plugin/highlight/highlight.js"></script>
+  <script>
+    // More info about initialization & config:
+    // - https://revealjs.com/initialization/
+    // - https://revealjs.com/config/
+    Reveal.initialize({
+      hash: true,
+
+      // Learn about plugins: https://revealjs.com/plugins/
+      plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
+    });
+  </script>
+</body>
+
+</html>
