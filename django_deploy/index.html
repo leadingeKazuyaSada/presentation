@@ -70,8 +70,8 @@
           Ubuntu マシンがあるものとします。</p>
         <p>Apache2, Git, Python3 を<br>
           インストールします。</p>
-        <p>外からブラウザで<br>
-          アクセスできるようにします。<br>
+        <p>外からブラウザでアクセス<br>
+          できるようにします。<br>
           (ファイアウォールとかルータの設定)</p>
       </section>
       <!---------------------------------------------------------------------->
@@ -85,16 +85,15 @@
       <section>
         <h3>無料の DDNS の制限</h3>
         <p>Apache で他のコンテンツも動かす場合、<br>
-          サブドメインで隔離するのが楽です。</p>
+          ワイルドカードで隔離するのが楽です。</p>
         <p>
           <tt>
             <font color="gray">https://<font color="tomato">django.</font>
               my-domain.no-ip.xx/</font>
           </tt>
         </p>
-        <p>しかし、無料の DDNS を使う場合、<br>
-          サブドメインが使えないかも知れません。</p>
-        <p>このスライドではサブドメインを<br>
+        <p>DDNS によっては、ワイルドカード<br>サブドメインが使えないかも知れません。</p>
+        <p>このスライドではワイルドカードを<br>
           使わないやり方にします (のちほど)。</p>
       </section>
       <!---------------------------------------------------------------------->
@@ -412,10 +411,55 @@
         <p>これにより、</p>
         <ul>
           <li>今ある Ubuntu マシンで</li>
-          <li>サブドメインを使わずに</li>
+          <li>ワイルドカードを使わずに</li>
           <li>他のコンテンツと共存する形で</li>
         </ul>
         <p>Django をデプロイできる。</p>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <section id="daemonmode">
+          <h3><strong>[推奨]</strong> mod-wsgi のデーモンモード</h3>
+          <p>Windows 以外のサーバで推奨だそうです。</p>
+          <pre><code class="apache hljs" data-trim data-line-numbers="9-11"><script type="text/template">
+            <IfModule mod_ssl.c>
+
+              LoadModule wsgi_module /.../my_site/.venv/lib/python3.8/site-packages/mod_wsgi/server/mod_wsgi-py38.cpython-38-x86_64-linux-gnu.so
+              
+              <VirtualHost *:443>
+                
+                (中略)
+                
+                WSGIDaemonProcess my_site python-home=/.../my_site/.venv python-path=/.../my_site
+                WSGIProcessGroup my_site
+                WSGIScriptAlias /my_site /.../my_site/my_site/wsgi.py process-group=my_site
+                <Directory /.../my_site/my_site>
+                  ...
+          </script></code></pre>
+          <p>WSGIPythonHome, WSGIPythonPath は不要。<br><a href="https://modwsgi.readthedocs.io/en/develop/configuration-directives/WSGIDaemonProcess.html" target="_blank">WSGIDaemonProcess</a> で指定。</p>
+        </section>
+        <section>
+          <h3>デーモンモードとは？</h3>
+          <p>デーモンモードでは独立したプロセスが<br>Apache からリクエストを受け取る。</p>
+          <p>(参考) <a href="https://docs.djangoproject.com/ja/3.1/howto/deployment/wsgi/modwsgi/#using-mod-wsgi-daemon-mode" target="_blank">mod_wsgi をデーモンモードで使用する</a></p>
+          <p>組み込みモードでは、コードを変更するたびに Apache を再起動しないと、変更が反映されない。</P>
+          <p style="font-size: 0.8em">※再起動しても urlpatterns が正しく解釈されない等<br>おかしなことがありました。</p>
+        </section>
+      </section>
+      <!---------------------------------------------------------------------->
+      <section>
+        <h3><strong>[注意]</strong> numpy 等を使う場合</h3>
+        <p>デーモンモードでは C 拡張モジュールを<br>使うパッケージは、そのままでは<br>クラッシュやデッドロックを起こす。</p>
+        <p>以下のようにして、強制的に Python <br>メインインタプリタで動かす必要がある。</p>
+        <pre><code class="apache hljs" data-trim data-line-numbers="4"><script type="text/template">
+          <IfModule mod_ssl.c>
+
+            LoadModule wsgi_module /.../my_site/.venv/lib/python3.8/site-packages/mod_wsgi/server/mod_wsgi-py38.cpython-38-x86_64-linux-gnu.so
+            WSGIApplicationGroup %{GLOBAL}
+            
+            <VirtualHost *:443>
+              ...
+        </script></code></pre>
       </section>
       <!---------------------------------------------------------------------->
       <section>
@@ -436,7 +480,7 @@
         <h3>TIPs</h3>
         <ul>
           <li>ブラウザで表示できない時は、Apache のログを見る (/var/log/apache2/error.log)。</li>
-          <li>No module named 'xxxx' というエラーは、<a href="#/conf1">WSGIPythonPath</a> を疑う。</li>
+          <li>No module named 'xxxx' というエラーは、<a href="#/conf1">WSGIPythonPath</a> (または <a href="#/daemonmode">python-path</a>) を疑う。</li>
           <li>Apache のエラーでなければ、<a href="#/env_server">DEBUG=True</a> にしてブラウザにエラーを出す。</li>
           <li>SQLite を使っている場合、db.sqlite3 と、その親ディレクトリにも書き込み権限が必要。</li>
         </ul>
