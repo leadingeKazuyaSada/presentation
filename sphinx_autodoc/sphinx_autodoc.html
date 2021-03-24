@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>sphinx_autodoc.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<br>
+<br>
+<h1 id="rest-%E3%82%92%E6%9B%B8%E3%81%8B%E3%81%9A%E3%81%AB-autodoc-%E3%81%A0%E3%81%91%E3%81%A7-sphinx-%E3%81%99%E3%82%8B">reST を書かずに autodoc だけで Sphinx する</h1>
+<ul>
+<li>@satamame (佐田和也)</li>
+<li>株式会社リーディング・エッジ社</li>
+</ul>
+<div style="page-break-before:always"></div>
+<h1 id="%E3%82%84%E3%82%8A%E3%81%9F%E3%81%8B%E3%81%A3%E3%81%9F%E3%81%93%E3%81%A8">やりたかったこと</h1>
+<ul>
+<li>docstring からドキュメントを生成する。<br>
+※ docstring は <a href="https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard">NumPy 形式</a>または <a href="https://github.com/google/styleguide/blob/gh-pages/pyguide.md#38-comments-and-docstrings">Google 形式</a>とします。</li>
+<li>よく見かける安心感のある体裁 (<a href="https://docs.readthedocs.io/en/latest/">Read the Docs</a>) にする。</li>
+<li>GitHub Pages で公開する。</li>
+<li>バージョンごとのドキュメントを作る。<br></li>
+<li><a href="https://www.sphinx-doc.org/ja/master/usage/restructuredtext/index.html">reStructuredText (reST)</a> を手で書かない。</li>
+</ul>
+<div style="page-break-before:always"></div>
+<p>サンプル</p>
+<img src="img/read_the_docs_example.png" width="80%" />
+<div style="page-break-before:always"></div>
+<h1 id="%E5%8B%95%E4%BD%9C%E7%A2%BA%E8%AA%8D%E3%81%97%E3%81%9F%E7%92%B0%E5%A2%83">動作確認した環境</h1>
+<ul>
+<li>Windows 10 Home 2004</li>
+<li>Python 3.8.1</li>
+<li>Sphinx 3.5.2</li>
+<li>sphinx-rtd-theme 0.5.1</li>
+<li>sphinx-multiversion 0.2.4</li>
+</ul>
+<div style="page-break-before:always"></div>
+<h1 id="%E6%A7%8B%E6%88%90">構成</h1>
+<p>ドキュメントは (中間生成物も) すべて &quot;docs&quot; フォルダに入るようにします。</p>
+<pre class="hljs"><code><div>my_pkg/
+ ├─ .git/
+ ├─ .venv/
+ ├─ docs/
+ │   ├─ build/
+ │   │   └─ (生成した HTML)
+ │   └─ source/
+ │       └─ (reST、設定やテンプレート)
+ └─ src/
+     └─ my_pkg/
+</div></code></pre>
+<div style="page-break-before:always"></div>
+<h2 id="%E3%81%8A%E3%81%8A%E3%81%BE%E3%81%8B%E3%81%AA%E6%B5%81%E3%82%8C">おおまかな流れ</h2>
+<h3 id="1-%E6%BA%96%E5%82%99-%E6%9C%80%E5%88%9D%E3%81%AB%E4%B8%80%E5%9B%9E%E3%81%A0%E3%81%91%E3%82%84%E3%82%8B">1. 準備 (最初に一回だけやる)</h3>
+<ol>
+<li>パッケージのインストール</li>
+<li>リポジトリ内に Sphinx プロジェクトを作成</li>
+<li>conf.py を編集</li>
+<li>index.rst を編集</li>
+<li>リダイレクト用の index.html を作成</li>
+<li>バージョン切替え用のテンプレートを作成</li>
+</ol>
+<div style="page-break-before:always"></div>
+<h2 id="%E3%81%8A%E3%81%8A%E3%81%BE%E3%81%8B%E3%81%AA%E6%B5%81%E3%82%8C">おおまかな流れ</h2>
+<h3 id="2-%E7%94%9F%E6%88%90-%E3%83%89%E3%82%AD%E3%83%A5%E3%83%A1%E3%83%B3%E3%83%88%E6%9B%B4%E6%96%B0%E6%99%82%E3%81%AB%E3%82%84%E3%82%8B">2. 生成 (ドキュメント更新時にやる)</h3>
+<ol>
+<li>ドキュメントの対象となるバージョンを準備する</li>
+<li>ソースコードから reST を生成する</li>
+<li>コミットしてタグをつける</li>
+<li>バージョンごとの HTML を生成する</li>
+</ol>
+<div style="page-break-before:always"></div>
+<h1 id="%E3%83%91%E3%83%83%E3%82%B1%E3%83%BC%E3%82%B8%E3%81%AE%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%88%E3%83%BC%E3%83%AB">パッケージのインストール</h1>
+<p>Read the Docs で <a href="https://docs.readthedocs.io/en/latest/guides/reproducible-builds.html#pinning-dependencies">Sphinx のバージョンを固定することが推奨されている</a>ので仮想環境にインストールします。</p>
+<pre class="hljs"><code><div>(.venv) &gt; pip install sphinx sphinx-rtd-theme sphinx-multiversion
+</div></code></pre>
+<ul>
+<li><a href="https://sphinx-rtd-theme.readthedocs.io/en/latest/">&quot;sphinx-rtd-theme&quot;</a> : Read the Docs のテーマを使うため。</li>
+<li><a href="https://holzhaus.github.io/sphinx-multiversion/">&quot;sphinx-multiversion&quot;</a> : バージョンごとのドキュメントを作るため。</li>
+</ul>
+<p>今回は両方ともインストールしている前提で進めます。</p>
+<div style="page-break-before:always"></div>
+<h1 id="%E3%83%AA%E3%83%9D%E3%82%B8%E3%83%88%E3%83%AA%E5%86%85%E3%81%AB-sphinx-%E3%83%97%E3%83%AD%E3%82%B8%E3%82%A7%E3%82%AF%E3%83%88%E3%82%92%E4%BD%9C%E6%88%90">リポジトリ内に Sphinx プロジェクトを作成</h1>
+<p>今回は Sphinx 関連のファイルはすべて &quot;docs&quot; フォルダの中に作ります。</p>
+<pre class="hljs"><code><div>(.venv) &gt; sphinx-quickstart docs
+</div></code></pre>
+<p>ドキュメントのソースを &quot;source&quot; サブフォルダに入れるか → &quot;y&quot;。</p>
+<pre class="hljs"><code><div>&gt; Separate source and build directories (y/n) [n]: y
+</div></code></pre>
+<div style="page-break-before:always"></div>
+<p>プロジェクト名、著者名、リリース番号、言語を聞かれます。<br>
+これらは後から &quot;conf.py&quot; というファイルを編集して変更できます。</p>
+<pre class="hljs"><code><div>&gt; Project name: my_pkg
+&gt; Author name(s): satamame
+&gt; Project release []: 0.0.1
+&gt; Project language [en]: ja
+</div></code></pre>
+<p>答え終わると、プロジェクトのためのファイルが生成されます。</p>
+<div style="page-break-before:always"></div>
+<p>(関係ないファイルやフォルダは省略しています。)</p>
+<pre class="hljs"><code><div>my_pkg/
+ ├─ docs/
+ │   ├─ build/
+ │   │   └─ (HTML の生成先。今は空)
+ │   ├─ source/
+ │   │   ├─ _static/
+ │   │   ├─ _templates/
+ │   │   ├─ conf.py
+ │   │   └─ index.rst
+ │   ├─ make.bat
+ │   └─ Makefile
+ └─ src/
+     └─ my_pkg/
+</div></code></pre>
+<div style="page-break-before:always"></div>
+<h1 id="confpy-%E3%82%92%E7%B7%A8%E9%9B%86">conf.py を編集</h1>
+<p>Sphinx や拡張用モジュールの設定は &quot;source/conf.py&quot; の中に書きます。</p>
+<h3 id="1-%E3%83%91%E3%82%B9%E3%81%AE%E6%8C%87%E5%AE%9A">1. パスの指定</h3>
+<p>autodoc でパッケージのソースコードを読み込むためにパスを追加します。</p>
+<pre class="hljs"><code><div><span class="hljs-comment"># -- Path setup ----------------------------------------</span>
+...
+
+<span class="hljs-keyword">import</span> os    <span class="hljs-comment"># コメント解除</span>
+<span class="hljs-keyword">import</span> sys   <span class="hljs-comment"># コメント解除</span>
+sys.path.insert(<span class="hljs-number">0</span>, os.path.abspath(<span class="hljs-string">'../../src'</span>))  <span class="hljs-comment"># 変更</span>
+</div></code></pre>
+<div style="page-break-before:always"></div>
+<h3 id="2-%E6%8B%A1%E5%BC%B5%E7%94%A8%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB%E3%81%AE%E6%8C%87%E5%AE%9A">2. 拡張用モジュールの指定</h3>
+<pre class="hljs"><code><div><span class="hljs-comment"># -- General configuration -----------------------------</span>
+...
+
+extensions = [
+    <span class="hljs-string">'sphinx.ext.autodoc'</span>,   <span class="hljs-comment"># ソースコード読み込み用</span>
+    <span class="hljs-string">'sphinx.ext.napoleon'</span>,  <span class="hljs-comment"># docstring パース用</span>
+    <span class="hljs-string">'sphinx_rtd_theme'</span>,     <span class="hljs-comment"># Read the Docs (不要 *1)</span>
+    <span class="hljs-string">'sphinx_multiversion'</span>,  <span class="hljs-comment"># マルチバージョン用</span>
+]
+</div></code></pre>
+<p><a href="https://www.sphinx-doc.org/ja/master/usage/extensions/autodoc.html">autodoc</a> と <a href="https://www.sphinx-doc.org/ja/master/usage/extensions/napoleon.html">napoleon</a> は Sphinx に付属していますので、別途インストールの必要はありません。</p>
+<div style="page-break-before:always"></div>
+<p>(*1)</p>
+<p>Read the Docs Sphinx Theme の<a href="https://sphinx-rtd-theme.readthedocs.io/en/latest/installing.html">インストール手順</a>に従って &quot;sphinx_rtd_theme&quot; を拡張用モジュールとして追加していますが、<br>
+これは<strong>不要</strong>です。</p>
+<p>追加するのはローカライズの機能を取り込むためです。<br>
+しかしこの機能が現状で日本語に対応していないので意味がないのです。<br>
+(言語をデフォルトの &quot;en&quot; にした場合も不要。)</p>
+<p>また、Read the Docs Sphinx Theme のインストール手順では<br>
+&quot;conf.py&quot; の中で <code>import sphinx_rtd_theme</code> をするとありますが、<br>
+これも不要かと思います。</p>
+<div style="page-break-before:always"></div>
+<h3 id="3-%E3%83%86%E3%83%BC%E3%83%9E%E3%81%AE%E6%8C%87%E5%AE%9A">3. テーマの指定</h3>
+<pre class="hljs"><code><div><span class="hljs-comment"># -- Options for HTML output ---------------------------</span>
+...
+
+html_theme = <span class="hljs-string">'sphinx_rtd_theme'</span>  <span class="hljs-comment"># 変更</span>
+</div></code></pre>
+<p>このテーマに固有の設定も、&quot;conf.py&quot; に追加することで可能です。</p>
+<p><a href="https://sphinx-rtd-theme.readthedocs.io/en/latest/configuring.html">https://sphinx-rtd-theme.readthedocs.io/en/latest/configuring.html</a></p>
+<div style="page-break-before:always"></div>
+<h3 id="4-%E3%83%9E%E3%83%AB%E3%83%81%E3%83%90%E3%83%BC%E3%82%B8%E3%83%A7%E3%83%B3%E3%81%AE%E8%A8%AD%E5%AE%9A">4. マルチバージョンの設定</h3>
+<p>個々の設定については <a href="https://holzhaus.github.io/sphinx-multiversion/master/configuration.html">sphinx-multiversion のサイト</a>に仕様があります。</p>
+<p>ここでは、「Git の履歴から &quot;1.0&quot; や &quot;12.34&quot; のようなタグと &quot;master&quot; ブランチをドキュメントのバージョンとして取り出す」という設定をします。</p>
+<pre class="hljs"><code><div><span class="hljs-comment"># -- Options for sphinx-multiversion -------------------</span>
+
+smv_tag_whitelist = <span class="hljs-string">r'^\d+\.\d+$'</span>   <span class="hljs-comment"># マッチしたタグを抽出</span>
+smv_branch_whitelist = <span class="hljs-string">r'^master$'</span>  <span class="hljs-comment"># マッチしたブランチを抽出</span>
+
+</div></code></pre>
+<div style="page-break-before:always"></div>
+<p>ここに表示され、選択できるようになる。</p>
+<img src="img/multi-version-open.png" />
+<div style="page-break-before:always"></div>
+<h1 id="indexrst-%E3%82%92%E7%B7%A8%E9%9B%86">index.rst を編集</h1>
+<p>&quot;index.rst&quot; から、目次に表示したいパッケージ (の reST) を参照します。</p>
+<pre class="hljs"><code><div>Welcome to my_pkg's documentation!
+==================================
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+    my_pkg   (これを追加)
+</div></code></pre>
+<div style="page-break-before:always"></div>
+<h1 id="%E3%83%AA%E3%83%80%E3%82%A4%E3%83%AC%E3%82%AF%E3%83%88%E7%94%A8%E3%81%AE-indexhtml-%E3%82%92%E4%BD%9C%E6%88%90">リダイレクト用の index.html を作成</h1>
+<pre class="hljs"><code><div><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-meta-keyword">html</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">html</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>Redirecting to master branch<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">"utf-8"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">http-equiv</span>=<span class="hljs-string">"refresh"</span> <span class="hljs-attr">content</span>=<span class="hljs-string">"0;
+        url=./master/index.html"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">"canonical"</span>
+        <span class="hljs-attr">href</span>=<span class="hljs-string">"https://my_pkg.com/master/index.html"</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span>
+</div></code></pre>
+<div style="page-break-before:always"></div>
+<pre class="hljs"><code><div>my_pkg/
+ └─ docs/
+     ├─ build/
+     │   ├─ index.html  &lt;-- これを作って
+     │   ├─ 0.2/
+     │   │   ├─ index.html
+     │   │   └─ (index 以外のページ, CSS)
+     │   └─ master/
+     │       ├─ index.html  &lt;-- ここへリダイレクト
+     │       └─ (index 以外のページ, CSS)
+     ├─ source/
+     ├─ make.bat
+     └─ Makefile
+</div></code></pre>
+<p>※バージョンごとのフォルダ (&quot;0.2&quot;, &quot;master&quot;) はあとで生成されます。</p>
+<div style="page-break-before:always"></div>
+<h1 id="%E3%83%90%E3%83%BC%E3%82%B8%E3%83%A7%E3%83%B3%E5%88%87%E6%9B%BF%E3%81%88%E7%94%A8%E3%81%AE%E3%83%86%E3%83%B3%E3%83%97%E3%83%AC%E3%83%BC%E3%83%88%E3%82%92%E4%BD%9C%E6%88%90">バージョン切替え用のテンプレートを作成</h1>
+<p>バージョン切替えの UI を表示するために、&quot;docs/source/_templates&quot; フォルダの下に &quot;versions.html&quot; というファイルを作ります。
+内容は sphinx-multiversion のサイトからコピーしてきます。</p>
+<p><a href="https://holzhaus.github.io/sphinx-multiversion/master/templates.html#readthedocs-theme">https://holzhaus.github.io/sphinx-multiversion/master/templates.html#readthedocs-theme</a></p>
+<p>※このやり方は Read the Docs テーマを使っている場合の特別なやり方です。一般的には、&quot;conf.py&quot; の中で html_sidebars にテンプレートを追加するようですが、Read the Docs テーマを使う場合はその方法では表示できないようです。</p>
+<div style="page-break-before:always"></div>
+<h1 id="%E3%83%89%E3%82%AD%E3%83%A5%E3%83%A1%E3%83%B3%E3%83%88%E3%81%AE%E5%AF%BE%E8%B1%A1%E3%81%A8%E3%81%AA%E3%82%8B%E3%83%90%E3%83%BC%E3%82%B8%E3%83%A7%E3%83%B3%E3%82%92%E6%BA%96%E5%82%99%E3%81%99%E3%82%8B">ドキュメントの対象となるバージョンを準備する</h1>
+<p>ここからは、バージョンごとのドキュメントを作成する際に毎回実施する作業となります。</p>
+<p>まず、「Git 上のタグを見てドキュメントを作るのだ」という事を理解する必要があります。</p>
+<p>今回の設定では、&quot;1.0&quot; などのタグをつけたコミットはドキュメント生成の対象になりますから、混乱しないように<strong>パッケージ自体がバージョン 1.0 相当になった時点で</strong>以降の作業するようにします。</p>
+<div style="page-break-before:always"></div>
+<h1 id="%E3%82%BD%E3%83%BC%E3%82%B9%E3%82%B3%E3%83%BC%E3%83%89%E3%81%8B%E3%82%89-rest-%E3%82%92%E7%94%9F%E6%88%90%E3%81%99%E3%82%8B">ソースコードから reST を生成する</h1>
+<p>パッケージが準備できて「これでリリースする」と決めたら、<strong>ソースコードからドキュメントのソースを生成</strong>します。</p>
+<pre class="hljs"><code><div>(.venv) &gt; sphinx-apidoc -f -o docs/source src
+</div></code></pre>
+<p>このコマンドのリファレンスは Sphinx のサイトにあります。</p>
+<p><a href="https://www.sphinx-doc.org/ja/master/man/sphinx-apidoc.html">https://www.sphinx-doc.org/ja/master/man/sphinx-apidoc.html</a></p>
+<p><strong>※注意</strong> : ここで参照したパッケージは、ドキュメントのビルド時に <code>import</code> (実行) されます。</p>
+<div style="page-break-before:always"></div>
+<pre class="hljs"><code><div>my_pkg/
+ ├─ docs/
+ │   ├─ build/
+ │   │   └─ index.html
+ │   ├─ source/
+ │   │   ├─ _static/
+ │   │   ├─ _templates/
+ │   │   ├─ conf.py
+ │   │   ├─ index.rst
+ │   │   ├─ modules.rst  &lt;-- 生成される
+ │   │   └─ my_pkg.rst   &lt;-- 生成される
+ │   ├─ make.bat
+ │   └─ Makefile
+ └─ src/
+</div></code></pre>
+<div style="page-break-before:always"></div>
+<h1 id="%E3%82%B3%E3%83%9F%E3%83%83%E3%83%88%E3%81%97%E3%81%A6%E3%82%BF%E3%82%B0%E3%82%92%E3%81%A4%E3%81%91%E3%82%8B">コミットしてタグをつける</h1>
+<p>sphinx-multiversion が <strong>Git の履歴からドキュメントのソースを取ってくる</strong>ので、HTML を生成する前にコミットしてタグをつける必要があります。</p>
+<pre class="hljs"><code><div>&gt; git add .
+&gt; git commit -m 'v0.2 ドキュメントソース'
+&gt; git tag 0.2
+</div></code></pre>
+<p><code>smv_tag_whitelist</code> にマッチするタグ名をつけます。</p>
+<p>逆にマッチしないタグ名 (&quot;1.0.5&quot; など) をつければ、ドキュメントのバージョンは更新せずにパッチ等のリリース用のタグにできます。</p>
+<div style="page-break-before:always"></div>
+<h1 id="%E3%83%90%E3%83%BC%E3%82%B8%E3%83%A7%E3%83%B3%E3%81%94%E3%81%A8%E3%81%AE-html-%E3%82%92%E7%94%9F%E6%88%90%E3%81%99%E3%82%8B">バージョンごとの HTML を生成する</h1>
+<p><a href="https://holzhaus.github.io/sphinx-multiversion/master/quickstart.html">sphinx-multiversion</a> というコマンドを使います。</p>
+<pre class="hljs"><code><div>(.venv) &gt; sphinx-multiversion docs/source docs/build
+</div></code></pre>
+<p>実行すると、&quot;docs/build&quot; 以下に HTML が生成されます。<br>
+&quot;docs/build/index.html&quot; を開くと (リダイレクトされて) master ブランチから生成したドキュメントが表示されます。<br>
+そこからサイドバーを使って他のバージョンに切替えられます。</p>
+<div style="page-break-before:always"></div>
+<h1 id="github-pages-%E3%81%AB%E3%83%97%E3%83%83%E3%82%B7%E3%83%A5%E3%81%99%E3%82%8B">GitHub Pages にプッシュする</h1>
+<p>sphinx-multiversion のサイトに手順が載っています。<br>
+<a href="https://holzhaus.github.io/sphinx-multiversion/master/github_pages.html">https://holzhaus.github.io/sphinx-multiversion/master/github_pages.html</a></p>
+<p>ちょっと手順は違いますが、こんな感じです。</p>
+<ol>
+<li>gh-pages ブランチを --orphan で作っておく。</li>
+<li>&quot;.nojekyll&quot; というファイルを作っておく。</li>
+<li>master ブランチで HTML を生成し、stash する。</li>
+<li>gh-pages ブランチに切り替え、さっきの stash を apply する。</li>
+<li>&quot;docs/build&quot; の中身をルートに移動。
+<ul>
+<li>ソースコード等は削除して良い。</li>
+</ul>
+</li>
+<li>gh-pages を commit して push する。</li>
+</ol>
+<div style="page-break-before:always"></div>
+<p>参考 : gh-pages ブランチの中身の例</p>
+<img src="img/gh-pages.png" width="80%" />
+<p>※ &quot;https://username.github.io/reponame/&quot; のような URL で公開される。</p>
+<div style="page-break-before:always"></div>
+<h1 id="%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE">参考文献</h1>
+<p>※リンク先の情報を保証するものではありません。</p>
+<ul>
+<li><a href="https://www.sphinx-doc.org/ja/master/">Sphinx documentation</a></li>
+<li><a href="https://www.sphinx-doc.org/ja/master/usage/extensions/autodoc.html">sphinx.ext.autodoc -- docstringからのドキュメントの取り込み</a></li>
+<li><a href="https://holzhaus.github.io/sphinx-multiversion/master/index.html">sphinx-multiversion 0.2.4 documentation</a></li>
+<li><a href="https://docs.readthedocs.io/en/latest/intro/getting-started-with-sphinx.html">Getting Started with Sphinx — Read the Docs</a></li>
+<li><a href="https://sphinx-rtd-theme.readthedocs.io/en/latest/index.html">Read the Docs Sphinx Theme 0.5.1 documentation</a></li>
+<li><a href="https://qiita.com/futakuchi0117/items/4d3997c1ca1323259844">Sphinxの使い方．docstringを読み込んで仕様書を生成 - Qiita</a></li>
+<li><a href="https://qiita.com/icoxfog417/items/9e2eb932b61aa9b9e427">PythonプロジェクトのドキュメントをSphinxで作成する - Qiita</a></li>
+</ul>
+
+</body>
+</html>
